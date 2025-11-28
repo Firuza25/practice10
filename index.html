@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>RPS GameFi</title>
+    <link rel="stylesheet" href="style.css" />
+  </head>
+
+  <body>
+    <header>
+      <h1>Rock Paper Scissors</h1>
+      <div class="wallet-area">
+        <button id="connectBtn">Connect Wallet</button>
+        <span id="walletAddress">Not connected</span>
+      </div>
+    </header>
+
+    <div class="score-board">
+      <div id="user-label" class="badge">user</div>
+      <div class="score">
+        <span id="user-score">0</span>:<span id="computer-score">0</span>
+      </div>
+      <div id="computer-label" class="badge">computer</div>
+    </div>
+
+    <div class="bet-info">
+      <p>Bet: <span id="betAmountText">0.0001 tBNB</span> per round</p>
+      <p>Win: get 2× bet, Draw: refund, Lose: bet stays in contract.</p>
+    </div>
+
+    <div class="result">
+      <p id="resultText">Make your move.</p>
+    </div>
+
+    <div class="choices">
+      <div class="choice" id="r">✊</div>
+      <div class="choice" id="p">✋</div>
+      <div class="choice" id="s">✌️</div>
+    </div>
+
+    <p id="action-msg">Click Rock, Paper or Scissors to play.</p>
+
+    <!-- Ethers.js CDN (must be before app.js) -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/ethers/5.7.2/ethers.umd.min.js"></script>
+    <script src="app.js" charset="utf-8"></script>
+  </body>
+</html>
