@@ -1,166 +1,224 @@
-/* --- GLOBAL RESET --- */
 * {
-    margin: 0;
-    padding: 0;
-    box-sizing: border-box;
-    font-family: 'Orbitron', sans-serif;
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+  font-family: 'Orbitron', system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
 }
 
 body {
-    background: radial-gradient(circle at top left, #0f0c29, #302b63, #24243e);
-    color: #fff;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    min-height: 100vh;
-    padding: 20px;
+  background: radial-gradient(circle at top left, #0f0c29, #302b63, #24243e);
+  color: #fff;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  min-height: 100vh;
+  padding: 20px;
 }
 
-/* --- HEADER --- */
 header {
-    width: 100%;
-    max-width: 900px;
-    text-align: center;
-    margin-bottom: 40px;
-    border-bottom: 2px solid #00ffe7;
-    padding-bottom: 20px;
+  width: 100%;
+  max-width: 900px;
+  text-align: center;
+  margin-bottom: 30px;
+  border-bottom: 2px solid #00ffe7;
+  padding-bottom: 16px;
 }
 
 header h1 {
-    font-size: 2.5rem;
-    color: #00ffe7;
-    text-shadow: 0 0 10px #00ffe7, 0 0 20px #00ffe7;
-    margin-bottom: 10px;
+  font-size: 2.3rem;
+  color: #00ffe7;
+  text-shadow: 0 0 10px #00ffe7, 0 0 20px #00ffe7;
+  margin-bottom: 10px;
 }
 
 .wallet-area {
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    gap: 15px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 12px;
 }
 
 #connectBtn {
-    background: #00ffe7;
-    color: #0f0c29;
-    font-weight: bold;
-    border: none;
-    padding: 10px 20px;
-    border-radius: 12px;
-    cursor: pointer;
-    transition: 0.3s;
-    box-shadow: 0 0 15px #00ffe7;
+  background: #00ffe7;
+  color: #0f0c29;
+  font-weight: 600;
+  border: none;
+  padding: 8px 18px;
+  border-radius: 999px;
+  cursor: pointer;
+  transition: 0.25s;
+  box-shadow: 0 0 15px #00ffe7;
 }
 
 #connectBtn:hover {
-    transform: scale(1.1);
-    box-shadow: 0 0 25px #00ffe7, 0 0 50px #00ffe7;
+  transform: scale(1.06);
+  box-shadow: 0 0 25px #00ffe7, 0 0 40px #00ffe7;
 }
 
 #walletAddress {
-    font-size: 0.9rem;
-    color: #00ffe7;
+  font-size: 0.9rem;
+  color: #d4f7ff;
 }
 
+main {
+  width: 100%;
+  max-width: 900px;
+}
+
+/* SCORE BOARD */
+
 .score-board {
-    display: flex;
-    justify-content: center; /* центрируем всю доску */
-    align-items: center;
-    gap: 40px; /* расстояние между элементами */
-    font-family: 'Arial', sans-serif;
-    font-size: 2rem;
-    margin: 20px 0;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 40px;
+  margin: 24px 0;
 }
 
 .badge {
-    background: linear-gradient(145deg, #ff1c68, #00ffe7);
-    padding: 10px 20px;
-    border-radius: 15px;
-    color: white;
-    font-weight: bold;
-    text-transform: uppercase;
-    box-shadow: 0 0 15px #ff1c68;
+  background: linear-gradient(145deg, #ff1c68, #00ffe7);
+  padding: 8px 18px;
+  border-radius: 16px;
+  color: white;
+  font-weight: bold;
+  text-transform: uppercase;
+  box-shadow: 0 0 15px #ff1c68;
+  font-size: 0.9rem;
 }
 
 .score {
-    font-size: 3rem;
-    font-weight: bold;
-    color: #fff;
-    text-shadow: 0 0 10px #00ffe7;
+  font-size: 3rem;
+  font-weight: bold;
+  color: #fff;
+  text-shadow: 0 0 10px #00ffe7;
 }
 
+/* BET INFO */
 
-/* --- BET INFO --- */
 .bet-info {
-    text-align: center;
-    margin-bottom: 30px;
-    font-size: 1rem;
-    color: #00ffe7;
+  text-align: center;
+  margin-bottom: 24px;
+  font-size: 0.95rem;
+  color: #c0faff;
 }
 
 .bet-info span {
-    font-weight: bold;
-    color: #ff1c68;
+  font-weight: 700;
+  color: #ff8db1;
 }
 
-/* --- RESULT --- */
+/* RESULT */
+
 .result {
-    margin-bottom: 30px;
+  margin-bottom: 24px;
+  text-align: center;
 }
 
 #resultText {
-    font-size: 1.5rem;
-    text-align: center;
-    color: #fff;
-    text-shadow: 0 0 10px #ff1c68;
+  font-size: 1.3rem;
+  margin-bottom: 8px;
+  text-shadow: 0 0 8px #ff1c68;
 }
 
-/* --- CHOICES --- */
-.choices {
-    display: flex;
-    justify-content: center;
-    gap: 40px;
-    margin-bottom: 30px;
-}
-
-
-
-/* --- ACTION MESSAGE --- */
 #action-msg {
-    font-size: 1rem;
-    text-align: center;
-    color: #fff;
-    text-shadow: 0 0 10px #00ffe7;
+  font-size: 0.95rem;
+  color: #f0fbff;
 }
 
-/* --- RESPONSIVE --- */
-@media (max-width: 600px) {
-    .choices {
-        flex-direction: column;
-        gap: 20px;
-    }
+/* CHOICES */
 
-    .choice img {
-        width: 60px;
-        height: 60px;
-    }
+.choices {
+  display: flex;
+  justify-content: center;
+  gap: 32px;
+  margin-bottom: 28px;
 }
 
 .choice {
-    background: linear-gradient(145deg, #00ffe7, #ff1c68);
-    padding: 20px;
-    border-radius: 20px;
-    cursor: pointer;
-    transition: 0.3s;
-    box-shadow: 0 0 20px #00ffe7;
-    font-size: 4rem; /* увеличиваем смайлики */
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    text-shadow: 0 0 10px #fff;
+  background: linear-gradient(145deg, #00ffe7, #ff1c68);
+  padding: 18px;
+  border-radius: 20px;
+  cursor: pointer;
+  transition: 0.2s;
+  box-shadow: 0 0 20px #00ffe7;
+  font-size: 3.5rem;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  text-shadow: 0 0 10px #fff;
 }
 
 .choice:hover {
-    transform: scale(1.3) rotate(10deg);
-    box-shadow: 0 0 40px #ff1c68, 0 0 60px #00ffe7;
+  transform: scale(1.16) rotate(5deg);
+  box-shadow: 0 0 40px #ff1c68, 0 0 60px #00ffe7;
+}
+
+.choice.disabled {
+  opacity: 0.4;
+  pointer-events: none;
+}
+
+
+
+.history {
+  margin-top: 10px;
+  padding: 14px 16px 20px;
+  background: rgba(15, 12, 41, 0.75);
+  border-radius: 16px;
+  border: 1px solid rgba(0, 255, 231, 0.3);
+  box-shadow: 0 0 25px rgba(0, 255, 231, 0.2);
+}
+
+.history h2 {
+  font-size: 1.2rem;
+  margin-bottom: 6px;
+  color: #00ffe7;
+}
+
+.history-subtitle {
+  font-size: 0.85rem;
+  color: #c3e8ff;
+  margin-bottom: 10px;
+}
+
+#historyList {
+  list-style: none;
+  max-height: 260px;
+  overflow-y: auto;
+}
+
+.history-item {
+  padding: 8px 10px;
+  margin-bottom: 8px;
+  border-radius: 10px;
+  background: rgba(48, 43, 99, 0.9);
+  font-size: 0.85rem;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.history-item span.label {
+  font-weight: 600;
+  color: #ffb3cf;
+}
+
+
+@media (max-width: 600px) {
+  header h1 {
+    font-size: 1.7rem;
+  }
+
+  .score-board {
+    gap: 18px;
+  }
+
+  .choices {
+    gap: 20px;
+  }
+
+  .choice {
+    font-size: 3rem;
+    padding: 14px;
+  }
 }
