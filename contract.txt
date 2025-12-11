@@ -1,0 +1,76 @@
+pragma solidity ^0.8.20;
+
+contract RPS {
+    enum Move {
+        Rock,
+        Paper,
+        Scissors
+    }
+
+    uint256 public constant betAmount = 0.0001 ether;
+
+    event GamePlayed(
+        address indexed player,
+        Move playerMove,
+        Move computerMove,
+        string result,
+        uint256 amountWon
+    );
+
+    function play(uint8 _playerMove) external payable {
+        require(msg.value == betAmount, "Must send exact bet amount");
+        require(_playerMove <= 2, "Invalid move");
+
+        Move playerMove = Move(_playerMove);
+        Move computerMove = generateComputerMove();
+
+        string memory result;
+        uint256 payout = 0;
+
+        if (playerMove == computerMove) {
+
+            payout = msg.value;
+            payable(msg.sender).transfer(payout);
+            result = "draw";
+        } else if (
+            (playerMove == Move.Rock && computerMove == Move.Scissors) ||
+            (playerMove == Move.Paper && computerMove == Move.Rock) ||
+            (playerMove == Move.Scissors && computerMove == Move.Paper)
+        ) {
+            payout = msg.value * 2;
+            require(
+                address(this).balance >= payout,
+                "Contract insufficient funds"
+            );
+            payable(msg.sender).transfer(payout);
+            result = "win";
+        } else {
+
+            result = "lose";
+        }
+
+        emit GamePlayed(msg.sender, playerMove, computerMove, result, payout);
+    }
+
+
+    function generateComputerMove() private view returns (Move) {
+        uint256 rand = uint256(
+            keccak256(
+                abi.encodePacked(
+                    block.prevrandao,
+                    block.timestamp,
+                    msg.sender,
+                    address(this)
+                )
+            )
+        ) % 3;
+
+        return Move(rand); 
+    }
+
+    function fundContract() external payable {}
+
+    function contractBalance() external view returns (uint256) {
+        return address(this).balance;
+    }
+}
