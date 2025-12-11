@@ -1,83 +1,33 @@
 let userScore = 0;
 let computerScore = 0;
 
-// DOM elements
-const userScore_span = document.getElementById('user-score');
-const computerScore_span = document.getElementById('computer-score');
-const result_p = document.getElementById('resultText');
-const action_msg = document.getElementById('action-msg');
-const rock_div = document.getElementById('r');
-const paper_div = document.getElementById('p');
-const scissors_div = document.getElementById('s');
+const userScoreSpan = document.getElementById('user-score');
+const computerScoreSpan = document.getElementById('computer-score');
+const resultText = document.getElementById('resultText');
+const actionMsg = document.getElementById('action-msg');
+const rockDiv = document.getElementById('r');
+const paperDiv = document.getElementById('p');
+const scissorsDiv = document.getElementById('s');
 const connectBtn = document.getElementById('connectBtn');
 const walletAddressSpan = document.getElementById('walletAddress');
 const betAmountText = document.getElementById('betAmountText');
+const historyList = document.getElementById('historyList');
 
-// Web3 / ethers state
+
 let provider;
 let signer;
 let contract;
+let currentAddress = null;
+let currentHistory = [];
 
-// Must match BET_AMOUNT in contract (0.0001 ether)
+
 const BET_AMOUNT = "0.0001";
 
-// TODO: replace this with your deployed contract address from Remix
-const contractAddress = "0xF3a38CA80918ec6E9ee80151D624d07e51068556";
+const contractAddress = "0x219c0aea31E2B8416158200C573b0625f017DBD8";
 
-// TODO: in Remix, after compiling, copy the ABI JSON and paste it here:
 const contractABI = [
     {
-        "inputs": [],
-        "name": "fundContract",
-        "outputs": [],
-        "stateMutability": "payable",
-        "type": "function"
-    },
-    {
-        "anonymous": false,
-        "inputs": [
-            {
-                "indexed": true,
-                "internalType": "address",
-                "name": "player",
-                "type": "address"
-            },
-            {
-                "indexed": false,
-                "internalType": "uint8",
-                "name": "playerMove",
-                "type": "uint8"
-            },
-            {
-                "indexed": false,
-                "internalType": "uint8",
-                "name": "computerMove",
-                "type": "uint8"
-            },
-            {
-                "indexed": false,
-                "internalType": "string",
-                "name": "result",
-                "type": "string"
-            },
-            {
-                "indexed": false,
-                "internalType": "uint256",
-                "name": "amountWon",
-                "type": "uint256"
-            }
-        ],
-        "name": "GamePlayed",
-        "type": "event"
-    },
-    {
-        "inputs": [
-            {
-                "internalType": "uint8",
-                "name": "_playerMove",
-                "type": "uint8"
-            }
-        ],
+        "inputs": [{ "internalType": "uint8", "name": "_playerMove", "type": "uint8" }],
         "name": "play",
         "outputs": [],
         "stateMutability": "payable",
@@ -86,30 +36,25 @@ const contractABI = [
     {
         "inputs": [],
         "name": "betAmount",
-        "outputs": [
-            {
-                "internalType": "uint256",
-                "name": "",
-                "type": "uint256"
-            }
-        ],
+        "outputs": [{ "internalType": "uint256", "name": "", "type": "uint256" }],
         "stateMutability": "view",
         "type": "function"
     },
     {
-        "inputs": [],
-        "name": "contractBalance",
-        "outputs": [
-            {
-                "internalType": "uint256",
-                "name": "",
-                "type": "uint256"
-            }
+        "anonymous": false,
+        "inputs": [
+            { "indexed": true, "internalType": "address", "name": "player", "type": "address" },
+            { "indexed": false, "internalType": "uint8", "name": "playerMove", "type": "uint8" },
+            { "indexed": false, "internalType": "uint8", "name": "computerMove", "type": "uint8" },
+            { "indexed": false, "internalType": "string", "name": "result", "type": "string" },
+            { "indexed": false, "internalType": "uint256", "name": "amountWon", "type": "uint256" }
         ],
-        "stateMutability": "view",
-        "type": "function"
+        "name": "GamePlayed",
+        "type": "event"
     }
-]
+];
+
+// Move conversion helpers
 function convertToWord(letter) {
     if (letter === 'r') return "Rock";
     if (letter === 'p') return "Paper";
@@ -117,7 +62,6 @@ function convertToWord(letter) {
 }
 
 function moveToEnumIndex(letter) {
-    // enum Move { Rock, Paper, Scissors } => 0,1,2
     if (letter === 'r') return 0;
     if (letter === 'p') return 1;
     return 2;
@@ -130,131 +74,191 @@ function enumIndexToLetter(idx) {
 }
 
 function setChoicesDisabled(disabled) {
-    [rock_div, paper_div, scissors_div].forEach(c => {
-        if (disabled) c.classList.add('disabled');
-        else c.classList.remove('disabled');
+    [rockDiv, paperDiv, scissorsDiv].forEach(el => {
+        if (disabled) el.classList.add('disabled');
+        else el.classList.remove('disabled');
     });
 }
 
-async function connectWallet() {
-    if (typeof window.ethereum === "undefined") {
-        alert("MetaMask (or another Web3 wallet) is required to play this game.");
-        return;
-    }
 
-    try {
-        provider = new ethers.providers.Web3Provider(window.ethereum);
-        await provider.send("eth_requestAccounts", []);
-        signer = provider.getSigner();
-
-        const address = await signer.getAddress();
-        walletAddressSpan.textContent = address.slice(0, 6) + "..." + address.slice(-4);
-
-        contract = new ethers.Contract(contractAddress, contractABI, signer);
-
-        // Optional: read bet from contract so UI is always in sync
-        const bet = await contract.betAmount();
-
-        betAmountText.textContent = ethers.utils.formatEther(bet) + " tBNB";
-
-        result_p.textContent = "Wallet connected. Choose Rock, Paper, or Scissors.";
-        action_msg.textContent = "Each round is a blockchain transaction. Please wait for confirmation.";
-
-    } catch (err) {
-        console.error(err);
-        result_p.textContent = "Failed to connect wallet. Check console.";
-    }
+function historyKey(address) {
+    return `rps_history_${address.toLowerCase()}`;
 }
 
-async function game(userChoice) {
-    if (!contract || !signer) {
-        result_p.textContent = "Please connect your wallet first.";
+function loadHistory(address) {
+    historyList.innerHTML = "";
+    currentHistory = [];
+
+    const saved = localStorage.getItem(historyKey(address));
+    if (!saved) {
+        renderHistory();
         return;
     }
 
-    const moveIndex = moveToEnumIndex(userChoice);
+    try {
+        currentHistory = JSON.parse(saved);
+    } catch (_) {
+        currentHistory = [];
+    }
+
+    renderHistory();
+}
+
+function saveHistory(address) {
+    localStorage.setItem(historyKey(address), JSON.stringify(currentHistory));
+}
+
+function shortenHash(hash) {
+    return hash.slice(0, 6) + "..." + hash.slice(-4);
+}
+
+function renderHistory() {
+    historyList.innerHTML = "";
+
+    if (currentHistory.length === 0) {
+        const li = document.createElement("li");
+        li.className = "history-item";
+        li.textContent = "No games played yet.";
+        historyList.appendChild(li);
+        return;
+    }
+
+    [...currentHistory].reverse().forEach(entry => {
+        const li = document.createElement("li");
+        li.className = "history-item";
+
+        li.innerHTML = `
+            <span><span class="label">Result:</span> ${entry.result.toUpperCase()}</span>
+            <span><span class="label">You:</span> ${entry.playerMove} | 
+                  <span class="label">Computer:</span> ${entry.computerMove}</span>
+            <span><span class="label">Amount won:</span> ${entry.amountWon} tBNB</span>
+            <span><span class="label">Tx:</span> 
+              <a href="https://testnet.bscscan.com/tx/${entry.txHash}" target="_blank">
+                ${shortenHash(entry.txHash)}
+              </a>
+            </span>
+            <span><span class="label">Time:</span> ${entry.timestamp}</span>
+        `;
+        historyList.appendChild(li);
+    });
+}
+
+
+async function connectWallet() {
+    if (!window.ethereum) {
+        alert("MetaMask is required!");
+        return;
+    }
+
+    provider = new ethers.providers.Web3Provider(window.ethereum);
+    await provider.send("eth_requestAccounts", []);
+    signer = provider.getSigner();
+
+    currentAddress = await signer.getAddress();
+    walletAddressSpan.textContent = currentAddress.slice(0, 6) + "..." + currentAddress.slice(-4);
+
+    contract = new ethers.Contract(contractAddress, contractABI, signer);
+
+    const betFromContract = await contract.betAmount();
+    betAmountText.textContent = ethers.utils.formatEther(betFromContract) + " tBNB";
+
+    resultText.textContent = "Wallet connected. Choose your move!";
+    actionMsg.textContent = "Each round is an on-chain transaction.";
+
+
+    loadHistory(currentAddress);
+}
+
+
+
+async function game(userChoiceLetter) {
+    if (!contract || !signer) {
+        resultText.textContent = "Please connect your wallet first.";
+        return;
+    }
+
+    const moveIndex = moveToEnumIndex(userChoiceLetter);
 
     try {
-        // Disable choices to prevent multiple clicks
         setChoicesDisabled(true);
 
         const tx = await contract.play(moveIndex, {
-            value: ethers.utils.parseEther("0.0001") // Fixed bet size
+            value: ethers.utils.parseEther(BET_AMOUNT)
         });
 
-        // Wait for the transaction to be mined
-        await tx.wait();
+        resultText.textContent = "Waiting for transaction confirmation…";
 
-        // Fetch the last game result after the transaction
-        const player = await signer.getAddress();
-        const last = await contract.getLastGame(player); // изменили на getLastGame
+        const receipt = await tx.wait();
 
-        // If `getLastGame` returns a struct, extract values correctly
-        const cpuIdx = last.computerMove; // это уже напрямую возвращает нужное значение
-        const resultIndex = last.result;
+        const event = receipt.events?.find(e => e.event === "GamePlayed");
+        if (!event) {
+            resultText.textContent = "Game finished, but event not found.";
+            return;
+        }
 
-        // Convert the move from the contract index (0=rock, 1=paper, 2=scissors)
-        const cpuMove = parseInt(cpuIdx);
-        const cpuChoice = cpuMove === 0 ? 'r' : cpuMove === 1 ? 'p' : 's';
+        const playerMove = enumIndexToLetter(event.args.playerMove);
+        const cpuMove = enumIndexToLetter(event.args.computerMove);
+        const result = event.args.result;
+        const wonAmount = ethers.utils.formatEther(event.args.amountWon);
 
-        // Determine win/loss/draw
-        if (resultIndex === 2) userScore++;
-        if (resultIndex === 1) { /* Draw, do nothing to scores */ }
-        if (resultIndex === 0) computerScore++;
+        if (result === "win") userScore++;
+        else if (result === "lose") computerScore++;
 
-        userScore_span.textContent = userScore;
-        computerScore_span.textContent = computerScore;
+        userScoreSpan.textContent = userScore;
+        computerScoreSpan.textContent = computerScore;
 
-        result_p.textContent = `${convertToWord(userChoice)} vs ${convertToWord(cpuChoice)} → ${resultIndex === 2 ? "win" : "lose"}`;
-        action_msg.textContent = "Play again when you're ready.";
+        resultText.textContent =
+            `${convertToWord(userChoiceLetter)} vs ${convertToWord(cpuMove)} → ${result.toUpperCase()}`;
+
+        // Save to history
+        const entry = {
+            playerMove: convertToWord(playerMove),
+            computerMove: convertToWord(cpuMove),
+            result: result,
+            amountWon: wonAmount,
+            txHash: receipt.transactionHash,
+            timestamp: new Date().toLocaleString()
+        };
+
+        currentHistory.push(entry);
+        saveHistory(currentAddress);
+        renderHistory();
 
     } catch (err) {
         console.error(err);
-        result_p.textContent = "Transaction failed.";
-        action_msg.textContent = "Check wallet, network, or contract status.";
+        resultText.textContent = "Transaction failed.";
     } finally {
-        // Re-enable choices after transaction is done
         setChoicesDisabled(false);
     }
 }
+if (window.ethereum) {
+    window.ethereum.on("accountsChanged", async (accounts) => {
+        const newAddress = accounts[0];
+
+        signer = provider.getSigner();
+        contract = new ethers.Contract(contractAddress, contractABI, signer);
 
 
-function convertToWord(letter) {
-    if (letter === 'r') return "Rock";
-    if (letter === 'p') return "Paper";
-    return "Scissors";
-}
+        walletAddressSpan.textContent =
+            newAddress.slice(0, 6) + "..." + newAddress.slice(-4);
 
-function moveToEnumIndex(letter) {
-    if (letter === 'r') return 0;
-    if (letter === 'p') return 1;
-    return 2;
-}
 
-function enumIndexToLetter(idx) {
-    if (idx === 0) return 'r';
-    if (idx === 1) return 'p';
-    return 's';
-}
+        historyList.innerHTML = "";
 
-// Disable buttons during transaction to prevent spam
-function setChoicesDisabled(disabled) {
-    const choices = [rock_div, paper_div, scissors_div];
-    choices.forEach(c => {
-        if (disabled) {
-            c.classList.add('disabled');
-        } else {
-            c.classList.remove('disabled');
-        }
+     
+        loadGameHistory(newAddress);
+
+        result_p.textContent = "Wallet switched. Choose your move.";
     });
 }
 
-function main() {
-    connectBtn.addEventListener('click', connectWallet);
 
-    rock_div.addEventListener('click', async() => await game('r'));
-    paper_div.addEventListener('click', async() => await game('p'));
-    scissors_div.addEventListener('click', async() => await game('s'));
+
+function init() {
+    connectBtn.addEventListener("click", connectWallet);
+    rockDiv.addEventListener("click", () => game("r"));
+    paperDiv.addEventListener("click", () => game("p"));
+    scissorsDiv.addEventListener("click", () => game("s"));
 }
 
-main();
+init();
